@@ -1,11 +1,18 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle, Package, Truck, Mail, Phone } from 'lucide-react';
-import product3 from "./../assets/product3.jpg"
+import product3 from "./../assets/product3.jpg";
 import { useCheckout } from '../context/CheckoutContext';
+import { useCart } from '../context/CartContext';
 
 export default function OrderConfirmedPage() {
   const navigate = useNavigate();
+  const { clearCart } = useCart();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
+  const [isOrderSaved, setIsOrderSaved] = useState(false);
+  const submittedRef = useRef(false); // Prevent double submission
+
   const { 
     currentOrder, 
     completeOrder, 
@@ -13,26 +20,113 @@ export default function OrderConfirmedPage() {
     clearCheckoutData 
   } = useCheckout();
 
+  const handleOrderSubmit = async (order) => {
+    const payload = {
+      customer: {
+        name: `${order.deliveryInfo.firstName} ${order.deliveryInfo.lastName}`.trim(),
+        email: order.contactInfo.email,
+        phone: order.contactInfo.phone,
+        address: [
+          order.deliveryInfo.address,
+          order.deliveryInfo.apartment,
+          order.deliveryInfo.city,
+          order.deliveryInfo.postalCode,
+          order.deliveryInfo.country
+        ].filter(Boolean).join(', ')
+      },
+      order: {
+        total_amount: order.total,
+        payment_method: order.paymentMethod === 'cod' ? 'Cash on Delivery' : 'Cash',
+        shipping_method: order.shippingMethod === 'free' ? 'Free Shipping' : 'International Shipping',
+        status: 'Pending',
+        order_number: order.orderNumber,
+        estimated_delivery: order.estimatedDelivery,
+        shipping_cost: order.shippingCost,
+        subtotal: order.subtotal
+      },
+      items: order.items.map(item => ({
+        product_id: item.id,
+        quantity: item.quantity,
+        price: item.price,
+        product_name: item.name
+      }))
+    };
+
+    try {
+      setIsSubmitting(true);
+      setSubmitError(null);
+
+      const response = await fetch('http://localhost:5000/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text();
+        throw new Error(`Invalid response from server: ${text}`);
+      }
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Failed to submit order');
+
+      setIsOrderSaved(true);
+      clearCart();
+      return true;
+    } catch (err) {
+      setSubmitError(err.message || 'Network error');
+      return false;
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   useEffect(() => {
-    // If there's no current order, redirect to cart
     if (!currentOrder) {
-      navigate('/home');
+      navigate('/');
       return;
     }
 
-    // Complete the order (move to order history) after component mounts
-    const timer = setTimeout(() => {
-      completeOrder();
-    }, 10000);
+    if (!submittedRef.current && !isOrderSaved && !isSubmitting) {
+      submittedRef.current = true;
+      handleOrderSubmit(currentOrder).then((success) => {
+        if (success) {
+          setTimeout(() => {
+            completeOrder();
+          }, 10000000);
+        } else {
+          submittedRef.current = false; // Allow retry
+        }
+      });
+    }
+  }, [currentOrder, isOrderSaved, isSubmitting, completeOrder, navigate]);
 
-    return () => clearTimeout(timer);
-  }, [currentOrder, completeOrder, navigate]);
+  const handleRetrySubmission = async () => {
+    if (currentOrder && !isSubmitting) {
+      submittedRef.current = true;
+      const success = await handleOrderSubmit(currentOrder);
+      if (success) {
+        setTimeout(() => {
+          completeOrder();
+        }, 1000000);
+      } else {
+        submittedRef.current = false;
+      }
+    }
+  };
+
+  const handleSkipToSuccess = () => {
+    setSubmitError(null);
+    setIsOrderSaved(true);
+    clearCart();
+    setTimeout(() => {
+      completeOrder();
+    }, 10000000);
+  };
 
   const handleTrackOrder = () => {
-    if (currentOrder) {
-      // In a real app, this would navigate to a tracking page
-      alert(`Tracking order: ${currentOrder.orderNumber}`);
-    }
+    alert(`Tracking order: ${currentOrder?.orderNumber}`);
   };
 
   const handleContinueShopping = () => {
@@ -40,7 +134,6 @@ export default function OrderConfirmedPage() {
     navigate('/shop');
   };
 
-  // If no current order, show loading or redirect
   if (!currentOrder) {
     return (
       <div className="max-w-6xl mx-auto px-4 py-8">
@@ -52,6 +145,7 @@ export default function OrderConfirmedPage() {
     );
   }
 
+
   const formattedAddress = getFormattedAddress(currentOrder.deliveryInfo);
 
   return (
@@ -61,11 +155,65 @@ export default function OrderConfirmedPage() {
         {/* Confirmation Header */}
         <div className="mb-8 text-center">
           <div className="flex justify-center mb-4">
-            <CheckCircle className="w-16 h-16 text-green-500" />
+            {isSubmitting ? (
+              <div className="w-16 h-16 border-4 border-gray-300 border-t-rose-500 rounded-full animate-spin"></div>
+            ) : submitError ? (
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+                <span className="text-red-500 text-2xl">⚠</span>
+              </div>
+            ) : (
+              <CheckCircle className="w-16 h-16 text-green-500" />
+            )}
           </div>
-          <h1 className="text-2xl font-medium mb-2">Thank you for your order!</h1>
-          <p className="text-gray-600">Your order has been confirmed and will be shipped soon.</p>
+          
+          {isSubmitting ? (
+            <>
+              <h1 className="text-2xl font-medium mb-2">Processing your order...</h1>
+              <p className="text-gray-600">Please wait while we save your order details.</p>
+            </>
+          ) : submitError ? (
+            <>
+              <h1 className="text-2xl font-medium mb-2 text-red-600">Order Processing Error</h1>
+              <div className="bg-red-50 border border-red-200 rounded p-4 mb-4">
+                <p className="text-red-700 text-sm mb-3">{submitError}</p>
+                <div className="flex gap-2 justify-center">
+                  <button 
+                    onClick={handleRetrySubmission}
+                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors text-sm"
+                  >
+                    Retry Submission
+                  </button>
+                  <button 
+                    onClick={handleSkipToSuccess}
+                    className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors text-sm"
+                  >
+                    Continue Without Saving
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <h1 className="text-2xl font-medium mb-2">Thank you for your order!</h1>
+              <p className="text-gray-600">
+                {isOrderSaved 
+                  ? "Your order has been confirmed and saved to our system." 
+                  : "Your order has been confirmed and will be processed soon."
+                }
+              </p>
+            </>
+          )}
         </div>
+
+        {/* Show success status */}
+        {isOrderSaved && (
+          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded">
+            <div className="flex items-center">
+              <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
+              <span className="text-green-800 font-medium">Order successfully processed</span>
+            </div>
+          </div>
+        )}
 
         {/* Order Information */}
         <div className="mb-8">
@@ -98,6 +246,16 @@ export default function OrderConfirmedPage() {
           </div>
         </div>
 
+        {/* Contact Information */}
+        <div className="mb-8">
+          <h2 className="text-lg font-medium mb-4">Contact Information</h2>
+          <div className="border border-gray-300 rounded p-4">
+            <p className="font-medium mb-1">{currentOrder.contactInfo.email}</p>
+            <p className="text-sm text-gray-600">{currentOrder.contactInfo.phone}</p>
+          </div>
+        </div>
+
+        
         {/* Payment Method */}
         <div className="mb-8">
           <h2 className="text-lg font-medium mb-4">Payment Method</h2>
@@ -136,7 +294,7 @@ export default function OrderConfirmedPage() {
           </div>
         </div>
 
-        {/* Contact Information */}
+        {/* Company Contact Information */}
         <div className="mb-8">
           <h2 className="text-lg font-medium mb-4">Need Help?</h2>
           <div className="border border-gray-300 rounded p-4">
@@ -155,13 +313,15 @@ export default function OrderConfirmedPage() {
         <div className="flex gap-4 mb-8">
           <button 
             onClick={handleTrackOrder}
-            className="flex-1 bg-rose-500 text-white py-3 rounded font-medium hover:bg-rose-600 transition-colors"
+            className="flex-1 bg-rose-500 text-white py-3 rounded font-medium hover:bg-rose-600 transition-colors disabled:opacity-50"
+            disabled={isSubmitting}
           >
             Track Order
           </button>
           <button 
             onClick={handleContinueShopping}
-            className="flex-1 border border-rose-500 text-rose-500 py-3 rounded font-medium hover:bg-rose-50 transition-colors"
+            className="flex-1 border border-rose-500 text-rose-500 py-3 rounded font-medium hover:bg-rose-50 transition-colors disabled:opacity-50"
+            disabled={isSubmitting}
           >
             Continue Shopping
           </button>

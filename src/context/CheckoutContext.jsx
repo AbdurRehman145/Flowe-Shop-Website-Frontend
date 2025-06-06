@@ -52,6 +52,7 @@ const checkoutReducer = (state, action) => {
         ...state,
         contactInfo: {
           email: '',
+          phone: '',
           emailNews: false,
         },
         deliveryInfo: {
@@ -77,8 +78,9 @@ const checkoutReducer = (state, action) => {
 
 const initialState = {
   contactInfo: {
-    email: '',
-    emailNews: false,
+  email: '',
+  phone: '',
+  emailNews: false,
   },
   deliveryInfo: {
     country: 'Pakistan',
@@ -158,50 +160,54 @@ export const CheckoutProvider = ({ children }) => {
     return `${formatDate(deliveryStart)}-${formatDate(deliveryEnd)}, ${new Date().getFullYear()}`;
   };
 
-  const createOrder = (cartItems, cartTotal) => {
-    const shippingCost = 20.00;
-    const orderNumber = generateOrderNumber();
-    const estimatedDelivery = calculateEstimatedDelivery();
-    
-    const order = {
-      orderNumber,
-      orderDate: new Date().toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-      }),
-      estimatedDelivery,
-      items: cartItems.map(item => ({
-        id: item.id,
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity,
-        image: item.image,
-        total: item.price * item.quantity
-      })),
-      contactInfo: { ...state.contactInfo },
-      deliveryInfo: { ...state.deliveryInfo },
-      paymentMethod: state.paymentMethod,
-      billingAddress: state.billingAddressSame ? null : state.billingAddress,
-      subtotal: cartTotal,
-      shippingCost,
-      total: cartTotal + shippingCost,
-      status: 'confirmed',
-      trackingSteps: [
-        { step: 'Order Confirmed', completed: true, date: new Date() },
-        { step: 'Processing', completed: false, date: null },
-        { step: 'Shipped', completed: false, date: null },
-        { step: 'Delivered', completed: false, date: null }
-      ]
-    };
-
-    dispatch({
-      type: 'SET_CURRENT_ORDER',
-      payload: order
-    });
-
-    return order;
+   const createOrder = (cartItems, cartSubtotal, appliedCoupon = null, discountAmount = 0, selectedShippingMethod = 'international') => { 
+  const shippingCost = selectedShippingMethod === 'free' ? 0.00 : 20.00; 
+  const orderNumber = generateOrderNumber();
+  const estimatedDelivery = calculateEstimatedDelivery();
+  const finalCartTotal = cartSubtotal - discountAmount; // Apply discount to cart total
+  
+  const order = {
+    orderNumber,
+    orderDate: new Date().toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    }),
+    estimatedDelivery,
+    items: cartItems.map(item => ({
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      quantity: item.quantity,
+      image: item.image,
+      total: item.price * item.quantity
+    })),
+    contactInfo: { ...state.contactInfo },
+    deliveryInfo: { ...state.deliveryInfo },
+    paymentMethod: state.paymentMethod,
+    shippingMethod: selectedShippingMethod, 
+    billingAddress: state.billingAddressSame ? null : state.billingAddress,
+    subtotal: cartSubtotal,
+    appliedCoupon: appliedCoupon,
+    discountAmount: discountAmount,
+    shippingCost,
+    total: finalCartTotal + shippingCost, // Use discounted cart total + shipping
+    status: 'confirmed',
+    trackingSteps: [
+      { step: 'Order Confirmed', completed: true, date: new Date() },
+      { step: 'Processing', completed: false, date: null },
+      { step: 'Shipped', completed: false, date: null },
+      { step: 'Delivered', completed: false, date: null }
+    ]
   };
+
+  dispatch({
+    type: 'SET_CURRENT_ORDER',
+    payload: order
+  });
+
+  return order;
+};
 
   const completeOrder = () => {
     if (state.currentOrder) {

@@ -23,6 +23,8 @@ export default function CheckoutPage() {
   // Local state for form validation
   const [errors, setErrors] = useState({});
 
+  const [shippingMethod, setShippingMethod] = useState('international');
+
   const handleContactChange = (e) => {
     const { name, value, type, checked } = e.target;
     const updatedContactInfo = {
@@ -59,7 +61,11 @@ export default function CheckoutPage() {
     } else if (!/\S+@\S+\.\S+/.test(contactInfo.email)) {
       newErrors.email = 'Email is invalid';
     }
-    
+
+    if (!contactInfo.phone.trim()) {
+      newErrors.phone = 'Phone number is required';
+    }
+
     if (!deliveryInfo.firstName.trim()) {
       newErrors.firstName = 'First name is required';
     }
@@ -86,17 +92,15 @@ export default function CheckoutPage() {
     }
 
     // Create the order FIRST
-    const order = createOrder(cart, getCartTotal());
+      const order = createOrder(cart, getCartTotal(), shippingMethod);
     
     // Navigate to order confirmation BEFORE clearing cart
     navigate('/order-confirmed');
     
-    // Clear the cart AFTER navigation
-  
   };
 
   const subtotal = getCartTotal();
-  const shippingCost = 20.00;
+  const shippingCost = shippingMethod === 'free' ? 0.00 : 20.00; 
   const total = subtotal + shippingCost;
 
   return (
@@ -115,13 +119,28 @@ export default function CheckoutPage() {
               name="email"
               value={contactInfo.email}
               onChange={handleContactChange}
-              placeholder="Email or mobile phone number"
+              placeholder="Email"
               className={`w-full border rounded px-3 py-2 ${
                 errors.email ? 'border-red-500' : 'border-gray-300'
               }`}
             />
             {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
           </div>
+
+          <div className="mb-4">
+          <input
+              type="tel"
+              name="phone"
+              value={contactInfo.phone}
+              onChange={handleContactChange}
+              placeholder="Phone number"
+              className={`w-full border rounded px-3 py-2 ${
+                errors.phone ? 'border-red-500' : 'border-gray-300'
+              }`}
+            />
+            {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
+          </div>
+
           <div className="flex items-center">
             <input
               type="checkbox"
@@ -137,7 +156,7 @@ export default function CheckoutPage() {
 
         {/* Delivery Section */}
         <div className="mb-8">
-          <h2 className="text-lg font-medium mb-4">Delivery</h2>
+          <h2 className="text-lg font-medium mb-4">Delivery Information</h2>
           <div className="mb-4">
             <div className="relative">
               <select
@@ -251,9 +270,41 @@ export default function CheckoutPage() {
         {/* Shipping Method */}
         <div className="mb-8">
           <h2 className="text-lg font-medium mb-4">Shipping method</h2>
-          <div className="border border-rose-500 rounded p-3 flex justify-between items-center">
-            <span>International Shipping</span>
-            <span className="font-medium">${shippingCost.toFixed(2)}</span>
+          <div className="space-y-3">
+            <div className={`border rounded p-3 flex justify-between items-center cursor-pointer ${
+              shippingMethod === 'international' ? 'border-rose-500' : 'border-gray-300'
+            }`} onClick={() => setShippingMethod('international')}>
+              <div className="flex items-center">
+                <input
+                  type="radio"
+                  id="international"
+                  name="shippingMethod"
+                  value="international"
+                  checked={shippingMethod === 'international'}
+                  onChange={() => setShippingMethod('international')}
+                  className="mr-2"
+                />
+                <label htmlFor="international" className="cursor-pointer">International Shipping</label>
+              </div>
+              <span className="font-medium">$20.00</span>
+            </div>
+            <div className={`border rounded p-3 flex justify-between items-center cursor-pointer ${
+              shippingMethod === 'free' ? 'border-rose-500' : 'border-gray-300'
+            }`} onClick={() => setShippingMethod('free')}>
+              <div className="flex items-center">
+                <input
+                  type="radio"
+                  id="free"
+                  name="shippingMethod"
+                  value="free"
+                  checked={shippingMethod === 'free'}
+                  onChange={() => setShippingMethod('free')}
+                  className="mr-2"
+                />
+                <label htmlFor="free" className="cursor-pointer">Free Shipping</label>
+              </div>
+              <span className="font-medium">Free</span>
+            </div>
           </div>
         </div>
 
