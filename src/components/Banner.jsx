@@ -2,9 +2,12 @@ import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import banner from "./../assets/banner.jpg"
 import banner2 from "./../assets/banner2.jpg"
+import { Link } from 'react-router-dom';
+
 const Banner = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [animateText, setAnimateText] = useState(true);
+  const [isHovered, setIsHovered] = useState(false);
 
   const banners = [
     {
@@ -53,7 +56,11 @@ const Banner = () => {
   }, [currentSlide]);
 
   return (
-    <div className="relative w-full h-96 md:h-[600px] overflow-hidden bg-pink-100">
+    <div 
+      className="relative w-full h-96 md:h-[600px] overflow-hidden bg-pink-100"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       {/* Banner Images */}
       {banners.map((banner, index) => (
         <div 
@@ -90,16 +97,19 @@ const Banner = () => {
           <p className="text-gray-700 mb-6 md:text-lg">
             {banners[currentSlide].description}
           </p>
-          <button className="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-md transition-colors duration-300">
+          <Link to="/shop">
+          <button className="bg-red-600 hover:bg-red-500 text-white font-bold py-3 px-8 rounded-md transition-colors duration-300">
             {banners[currentSlide].buttonText}
           </button>
+          </Link>
         </div>
       </div>
 
-      {/* Navigation Buttons */}
+      {/* Navigation Buttons with fade animation */}
       <button 
         onClick={prevSlide}
-        className="absolute left-4 top-1/2 -translate-y-1/2 z-30 bg-white hover:bg-gray-100 rounded-full p-2 shadow-md"
+        className={`absolute left-4 top-1/2 -translate-y-1/2 z-30 bg-white hover:bg-gray-100 rounded-full p-2 shadow-md transition-all duration-300 ease-in-out
+          ${isHovered ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2 pointer-events-none'}`}
         aria-label="Previous slide"
       >
         <ChevronLeft className="w-5 h-5 text-gray-700" />
@@ -107,7 +117,8 @@ const Banner = () => {
       
       <button 
         onClick={nextSlide}
-        className="absolute right-4 top-1/2 -translate-y-1/2 z-30 bg-white hover:bg-gray-100 rounded-full p-2 shadow-md"
+        className={`absolute right-4 top-1/2 -translate-y-1/2 z-30 bg-white hover:bg-gray-100 rounded-full p-2 shadow-md transition-all duration-300 ease-in-out
+          ${isHovered ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-2 pointer-events-none'}`}
         aria-label="Next slide"
       >
         <ChevronRight className="w-5 h-5 text-gray-700" />
@@ -128,6 +139,5 @@ const Banner = () => {
     </div>
   );
 };
-
 
 export default Banner;

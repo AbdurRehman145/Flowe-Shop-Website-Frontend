@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { ShoppingCart, Menu, X, ChevronDown } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 
@@ -9,6 +9,9 @@ const Navbar = () => {
   
   const { getCartItemsCount } = useCart();
   const cartItemsCount = getCartItemsCount();
+  
+  // Get current location to determine active nav item
+  const location = useLocation();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -16,6 +19,11 @@ const Navbar = () => {
 
   const toggleDropdown = (dropdown) => {
     setActiveDropdown(activeDropdown === dropdown ? null : dropdown);
+  };
+
+  // Function to check if a nav item is active
+  const isActiveNavItem = (path) => {
+    return location.pathname === path;
   };
 
   const navItems = [
@@ -50,9 +58,7 @@ const Navbar = () => {
               {item.hasDropdown ? (
                 <button
                   onClick={() => toggleDropdown(item.name)}
-                  className={`flex items-center font-medium hover:text-pink-500 transition duration-200 ${
-                    index === 0 ? 'text-pink-500' : 'text-black'
-                  }`}
+                  className="flex items-center font-medium hover:text-pink-500 transition duration-200 text-black"
                 >
                   {item.name}
                   <ChevronDown size={16} className="ml-1" />
@@ -61,7 +67,7 @@ const Navbar = () => {
                 <Link
                   to={item.path}
                   className={`flex items-center font-medium hover:text-pink-500 transition duration-200 ${
-                    index === 0 ? 'text-pink-500' : 'text-black'
+                    isActiveNavItem(item.path) ? 'text-pink-500' : 'text-black'
                   }`}
                 >
                   {item.name}
@@ -76,7 +82,9 @@ const Navbar = () => {
                       <Link
                         key={dropdownIndex}
                         to={dropdownItem.path}
-                        className="block px-4 py-2 text-black hover:text-pink-500 hover:bg-gray-50 transition duration-200"
+                        className={`block px-4 py-2 hover:text-pink-500 hover:bg-gray-50 transition duration-200 ${
+                          isActiveNavItem(dropdownItem.path) ? 'text-pink-500' : 'text-black'
+                        }`}
                         onClick={() => setActiveDropdown(null)}
                       >
                         {dropdownItem.name}
@@ -99,22 +107,7 @@ const Navbar = () => {
               </span>
             )}
           </Link>
-          <div>
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              className="h-6 w-6 text-black hover:text-pink-500 cursor-pointer" 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor"
-            >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2} 
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" 
-              />
-            </svg>
-          </div>
+          
         </div>
 
         {/* Mobile Navigation Icons */}
@@ -165,9 +158,7 @@ const Navbar = () => {
                 <>
                   <button
                     onClick={() => toggleDropdown(item.name)}
-                    className={`flex items-center justify-between w-full font-medium hover:text-pink-500 transition duration-200 ${
-                      index === 0 ? 'text-pink-500' : 'text-black'
-                    }`}
+                    className="flex items-center justify-between w-full font-medium hover:text-pink-500 transition duration-200 text-black"
                   >
                     {item.name}
                     <ChevronDown size={16} className="ml-1" />
@@ -178,7 +169,9 @@ const Navbar = () => {
                         <Link
                           key={dropdownIndex}
                           to={dropdownItem.path}
-                          className="block hover:text-pink-500 transition duration-200"
+                          className={`block hover:text-pink-500 transition duration-200 ${
+                            isActiveNavItem(dropdownItem.path) ? 'text-pink-500' : 'text-black'
+                          }`}
                           onClick={() => {
                             setActiveDropdown(null);
                             setIsMenuOpen(false);
@@ -194,7 +187,7 @@ const Navbar = () => {
                 <Link
                   to={item.path}
                   className={`flex items-center justify-between w-full font-medium hover:text-pink-500 transition duration-200 ${
-                    index === 0 ? 'text-pink-500' : 'text-black'
+                    isActiveNavItem(item.path) ? 'text-pink-500' : 'text-black'
                   }`}
                   onClick={() => setIsMenuOpen(false)}
                 >

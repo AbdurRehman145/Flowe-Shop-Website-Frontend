@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function TestimonialSection() {
   // Define array of testimonials
@@ -23,16 +24,32 @@ export default function TestimonialSection() {
     }
   ];
 
-  // State to track current testimonial index
+  // State to track current testimonial index and hover state
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
 
   // Function to handle dot click
   const handleDotClick = (index) => {
     setCurrentIndex(index);
   };
 
+  // Navigation functions
+  const nextTestimonial = () => {
+    const newIndex = currentIndex === testimonials.length - 1 ? 0 : currentIndex + 1;
+    setCurrentIndex(newIndex);
+  };
+
+  const prevTestimonial = () => {
+    const newIndex = currentIndex === 0 ? testimonials.length - 1 : currentIndex - 1;
+    setCurrentIndex(newIndex);
+  };
+
   return (
-    <div className="w-full bg-pink-400 flex flex-col md:flex-row items-center overflow-hidden">
+    <div 
+      className="relative w-full bg-pink-400 flex flex-col md:flex-row items-center overflow-hidden"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       {/* Left side - Image container */}
       <div className="w-full md:w-1/2 p-8 flex justify-center items-center">
         <div className="relative w-64 h-64 md:w-80 md:h-96 bg-pink-300 rounded-lg shadow-lg overflow-hidden flex items-center justify-center">
@@ -84,6 +101,25 @@ export default function TestimonialSection() {
           ))}
         </div>
       </div>
+
+      {/* Navigation Buttons with fade animation */}
+      <button 
+        onClick={prevTestimonial}
+        className={`absolute left-4 top-1/2 -translate-y-1/2 z-30 bg-white hover:bg-gray-100 rounded-full p-2 shadow-md transition-all duration-300 ease-in-out
+          ${isHovered ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2 pointer-events-none'}`}
+        aria-label="Previous testimonial"
+      >
+        <ChevronLeft className="w-5 h-5 text-gray-700" />
+      </button>
+      
+      <button 
+        onClick={nextTestimonial}
+        className={`absolute right-4 top-1/2 -translate-y-1/2 z-30 bg-white hover:bg-gray-100 rounded-full p-2 shadow-md transition-all duration-300 ease-in-out
+          ${isHovered ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-2 pointer-events-none'}`}
+        aria-label="Next testimonial"
+      >
+        <ChevronRight className="w-5 h-5 text-gray-700" />
+      </button>
     </div>
   );
 }

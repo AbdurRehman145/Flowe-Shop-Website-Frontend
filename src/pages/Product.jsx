@@ -60,7 +60,7 @@ const Product = () => {
   };
 
   const handleGoBack = () => {
-    navigate('/products');
+    navigate('/shop');
   };
 
   const handleModalCartClick = () => {
@@ -232,8 +232,8 @@ const Product = () => {
             )}
             <div className="mb-2">
               <span className="font-medium text-gray-700">Availability:</span>{" "}
-              <span className={`text-sm ${product.inStock !== false ? 'text-green-600' : 'text-red-600'}`}>
-                {product.inStock !== false ? 'In Stock' : 'Out of Stock'}
+              <span className={`text-sm ${product.in_stock !== false ? 'text-green-600' : 'text-red-600'}`}>
+                {product.in_stock !== false ? 'In Stock' : 'Out of Stock'}
               </span>
             </div>
           </div>

@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+
+
 
 export default function FeaturedProducts() {
   // State
@@ -8,6 +11,7 @@ export default function FeaturedProducts() {
   const [error, setError] = useState(null);
   const [activeCategory, setActiveCategory] = useState("All");
   const [startIndex, setStartIndex] = useState(0);
+  const navigate = useNavigate();
   
   // Fetch products from API
   useEffect(() => {
@@ -64,6 +68,10 @@ export default function FeaturedProducts() {
     setStartIndex(0); // Reset to first page when changing category
   };
 
+  const handleProductClick = (productId) => {
+    navigate(`/products/${productId}`);
+  };
+
   // Get unique categories from products
   const categories = [...new Set(allProducts.map(product => product.category))];
 
@@ -118,7 +126,7 @@ export default function FeaturedProducts() {
           <div className="hidden sm:flex items-center space-x-6 mr-4">
             <button 
               onClick={() => handleCategoryChange("All")}
-              className={`text-sm font-medium ${activeCategory === "All" ? "text-red-500" : "text-gray-700 hover:text-red-500"}`}
+              className={`text-sm font-medium ${activeCategory === "All" ? "text-pink-500" : "text-gray-700 hover:text-pink-500"}`}
             >
               All
             </button>
@@ -126,7 +134,7 @@ export default function FeaturedProducts() {
               <button 
                 key={category}
                 onClick={() => handleCategoryChange(category)}
-                className={`text-sm font-medium ${activeCategory === category ? "text-red-500" : "text-gray-700 hover:text-red-500"}`}
+                className={`text-sm font-medium ${activeCategory === category ? "text-pink-500" : "text-gray-700 hover:text-pink-500"}`}
               >
                 {category}
               </button>
@@ -136,7 +144,7 @@ export default function FeaturedProducts() {
           <div className="flex items-center space-x-2">
             <button 
               onClick={handlePrev}
-              className={`p-2 rounded-md bg-gray-100 ${isPrevDisabled ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-pink-500'}`}
+              className={`p-2 rounded-md bg-gray-100 ${isPrevDisabled ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-pink-500 hover:text-white'}`}
               disabled={isPrevDisabled}
               aria-label="Previous products"
             >
@@ -144,7 +152,7 @@ export default function FeaturedProducts() {
             </button>
             <button 
               onClick={handleNext}
-              className={`p-2 rounded-md bg-gray-100 ${isNextDisabled ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-200'}`}
+              className={`p-2 rounded-md bg-gray-100 ${isNextDisabled ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-pink-500 hover:text-white'}`}
               disabled={isNextDisabled}
               aria-label="Next products"
             >
@@ -157,8 +165,9 @@ export default function FeaturedProducts() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
       {visibleProducts.map((product) => (
       <div
-            key={product.id}
-            className="bg-white p-5 rounded-2xl flex flex-col items-center"
+        key={product.id}
+        className="bg-white p-5 rounded-2xl flex flex-col items-center cursor-pointer hover:shadow-lg transition-shadow duration-200"
+        onClick={() => handleProductClick(product.id)}
       >
           <div className="aspect-square w-full mb-4 overflow-hidden bg-gray-50 rounded-lg flex items-center justify-center">
               <img 
