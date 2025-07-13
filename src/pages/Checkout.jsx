@@ -92,7 +92,7 @@ export default function CheckoutPage() {
     }
 
     // Create the order FIRST
-      const order = createOrder(cart, getCartTotal(), shippingMethod);
+      const order = createOrder(cart, getCartTotal(), null, 0, shippingMethod);
     
     // Navigate to order confirmation BEFORE clearing cart
     navigate('/order-confirmed');
@@ -312,7 +312,10 @@ export default function CheckoutPage() {
         <div className="mb-8">
           <h2 className="text-lg font-medium mb-2">Payment</h2>
           <p className="text-sm text-gray-600 mb-4">All transactions are secure and encrypted.</p>
-          <div className="border border-rose-500 rounded p-3 mb-4">
+          
+          <div className={`border rounded p-3 mb-2 ${
+            paymentMethod === 'cod' ? 'border-rose-500' : 'border-gray-300'
+          }`}>
             <div className="flex items-center">
               <input
                 type="radio"
@@ -324,6 +327,23 @@ export default function CheckoutPage() {
                 className="mr-2"
               />
               <label htmlFor="cod">Cash on Delivery (COD)</label>
+            </div>
+          </div>
+          
+          <div className={`border rounded p-3 mb-4 ${
+            paymentMethod === 'credit_card' ? 'border-rose-500' : 'border-gray-300'
+          }`}>
+            <div className="flex items-center">
+              <input
+                type="radio"
+                id="credit_card"
+                name="paymentMethod"
+                value="credit_card"
+                checked={paymentMethod === 'credit_card'}
+                onChange={() => setPaymentMethod('credit_card')}
+                className="mr-2"
+              />
+              <label htmlFor="credit_card">Credit Card</label>
             </div>
           </div>
         </div>
@@ -362,7 +382,7 @@ export default function CheckoutPage() {
         {/* Complete Order Button */}
         <button 
           onClick={handleCompleteOrder}
-          className="w-full bg-rose-500 text-white py-3 rounded font-medium hover:bg-rose-600 transition-colors"
+          className="w-full bg-rose-500  text-white py-3 rounded font-medium hover:bg-white hover:text-gray-600 border hover:border-rose-500 transition-colors"
         >
           Complete order
         </button>
@@ -378,8 +398,8 @@ export default function CheckoutPage() {
                 <div key={item.id} className="flex items-center justify-between mb-4">
                   <div className="flex items-center">
                     <div className="relative">
-                      <div className="w-16 h-16 bg-gray-100 rounded flex items-center justify-center">
-                        <img src={item.image || product3} alt={item.name} className="max-w-full max-h-full" />
+                      <div className="w-16 h-16  rounded flex items-center justify-center">
+                        <img src={item.image} alt={item.name} className="max-w-full max-h-full" />
                       </div>
                       <span className="absolute -top-2 -right-2 bg-gray-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
                         {item.quantity}
@@ -387,7 +407,6 @@ export default function CheckoutPage() {
                     </div>
                     <div className="ml-4">
                       <p className="text-sm">{item.name}</p>
-                      <p className="text-xs text-gray-500">ID: {item.id}</p>
                     </div>
                   </div>
                   <span className="font-medium">${(item.price * item.quantity).toFixed(2)}</span>

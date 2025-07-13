@@ -166,10 +166,10 @@ export default function FeaturedProducts() {
       {visibleProducts.map((product) => (
       <div
         key={product.id}
-        className="bg-white p-5 rounded-2xl flex flex-col items-center cursor-pointer hover:shadow-lg transition-shadow duration-200"
+        className="bg-white p-5 rounded-2xl flex flex-col items-center cursor-pointer "
         onClick={() => handleProductClick(product.id)}
       >
-          <div className="aspect-square w-full mb-4 overflow-hidden bg-gray-50 rounded-lg flex items-center justify-center">
+          <div className="aspect-square w-full mb-4 overflow-hidden rounded-lg flex items-center justify-center">
               <img 
                 src={product.image} 
                 alt={product.name} 

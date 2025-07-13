@@ -30,7 +30,7 @@ const AddToCartModal = ({ isOpen, onClose, product, quantity, onCartClick, onCon
           </p>
 
           {/* Product summary */}
-          <div className="flex items-center justify-center mb-8 p-4 bg-gray-50 rounded">
+          <div className="flex items-center justify-center mb-8 p-4 rounded">
             <img 
               src={product.image} 
               alt={product.name}
@@ -43,7 +43,7 @@ const AddToCartModal = ({ isOpen, onClose, product, quantity, onCartClick, onCon
               <p className="text-gray-600 text-sm">
                 Quantity: {quantity}
               </p>
-              <p className="text-red-500 font-semibold text-sm">
+              <p className="text-rose-500 font-semibold text-sm">
                 ${(product.price * quantity).toFixed(2)}
               </p>
             </div>
@@ -53,13 +53,13 @@ const AddToCartModal = ({ isOpen, onClose, product, quantity, onCartClick, onCon
           <div className="flex flex-col sm:flex-row gap-3">
             <button
               onClick={onContinueShopping}
-              className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors uppercase tracking-wide text-sm font-medium"
+              className="flex-1 px-6 py-3 rounded-lg border border-rose-500  text-gray-700 hover:bg-rose-500 hover:text-white transition-all duration-250 uppercase tracking-wide text-sm font-medium whitespace-nowrap"
             >
               Continue Shopping
             </button>
             <button
               onClick={onCartClick}
-              className="flex-1 px-6 py-3 bg-black text-white hover:bg-gray-800 transition-colors uppercase tracking-wide text-sm font-medium"
+              className="flex-1 px-6 py-3 rounded-md bg-pink-500 text-white border hover:bg-white hover:text-gray-700 hover:border-pink-500 transition-all duration-250 uppercase tracking-wide text-sm font-medium"
             >
               View Cart
             </button>

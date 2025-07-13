@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle, Package, Truck, Mail, Phone } from 'lucide-react';
+import { CheckCircle, Package, Truck, Mail, Phone, CreditCard, Banknote } from 'lucide-react';
 import product3 from "./../assets/product3.jpg";
 import { useCheckout } from '../context/CheckoutContext';
 import { useCart } from '../context/CartContext';
@@ -36,7 +36,7 @@ export default function OrderConfirmedPage() {
       },
       order: {
         total_amount: order.total,
-        payment_method: order.paymentMethod === 'cod' ? 'Cash on Delivery' : 'Cash',
+        payment_method: order.paymentMethod === 'cod' ? 'Cash on Delivery' : 'Credit Card',
         shipping_method: order.shippingMethod === 'free' ? 'Free Shipping' : 'International Shipping',
         status: 'Pending',
         order_number: order.orderNumber,
@@ -134,6 +134,31 @@ export default function OrderConfirmedPage() {
     navigate('/shop');
   };
 
+  // Helper function to get payment method display info
+  const getPaymentMethodInfo = (paymentMethod) => {
+    switch (paymentMethod) {
+      case 'cod':
+        return {
+          icon: Package,
+          label: 'Cash on Delivery (COD)',
+          description: `You will pay $${currentOrder?.total.toFixed(2)} when your order arrives.`
+        };
+      case 'credit_card':
+        return {
+          icon: CreditCard,
+          label: 'Credit Card',
+          description: 'Payment processed securely via credit/debit card.'
+        };
+     
+      default:
+        return {
+          icon: Package,
+          label: 'Cash on Delivery (COD)',
+          description: `You will pay $${currentOrder?.total.toFixed(2)} when your order arrives.`
+        };
+    }
+  };
+
   if (!currentOrder) {
     return (
       <div className="max-w-6xl mx-auto px-4 py-8">
@@ -145,8 +170,8 @@ export default function OrderConfirmedPage() {
     );
   }
 
-
   const formattedAddress = getFormattedAddress(currentOrder.deliveryInfo);
+  const paymentInfo = getPaymentMethodInfo(currentOrder.paymentMethod);
 
   return (
     <div className="flex flex-col md:flex-row max-w-6xl mx-auto p-4 gap-8">
@@ -255,17 +280,16 @@ export default function OrderConfirmedPage() {
           </div>
         </div>
 
-        
-        {/* Payment Method */}
+        {/* Payment Method - Now Dynamic */}
         <div className="mb-8">
           <h2 className="text-lg font-medium mb-4">Payment Method</h2>
           <div className="border border-rose-500 rounded p-4">
             <div className="flex items-center">
-              <Package className="w-5 h-5 text-rose-500 mr-2" />
-              <span>Cash on Delivery (COD)</span>
+              <paymentInfo.icon className="w-5 h-5 text-rose-500 mr-2" />
+              <span>{paymentInfo.label}</span>
             </div>
             <p className="text-sm text-gray-600 mt-2">
-              You will pay ${currentOrder.total.toFixed(2)} when your order arrives.
+              {paymentInfo.description}
             </p>
           </div>
         </div>
@@ -339,8 +363,8 @@ export default function OrderConfirmedPage() {
               <div key={item.id} className="flex items-center justify-between mb-4">
                 <div className="flex items-center">
                   <div className="relative">
-                    <div className="w-16 h-16 bg-gray-100 rounded flex items-center justify-center">
-                      <img src={item.image || product3} alt={item.name} className="max-w-full max-h-full" />
+                    <div className="w-16 h-16  rounded flex items-center justify-center">
+                      <img src={item.image } alt={item.name} className="max-w-full max-h-full" />
                     </div>
                     <span className="absolute -top-2 -right-2 bg-gray-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
                       {item.quantity}
@@ -348,7 +372,7 @@ export default function OrderConfirmedPage() {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm">{item.name}</p>
-                    <p className="text-xs text-gray-500">ID: {item.id}</p>
+                    
                   </div>
                 </div>
                 <span className="font-medium">${item.total.toFixed(2)}</span>
@@ -381,7 +405,9 @@ export default function OrderConfirmedPage() {
               <span className="text-sm font-medium">Estimated Delivery</span>
             </div>
             <p className="text-sm text-gray-600">{currentOrder.estimatedDelivery}</p>
-            <p className="text-xs text-gray-500 mt-1">International Shipping</p>
+            <p className="text-xs text-gray-500 mt-1">
+              {currentOrder.shippingMethod === 'free' ? 'Free Shipping' : 'International Shipping'}
+            </p>
           </div>
         </div>
       </div>

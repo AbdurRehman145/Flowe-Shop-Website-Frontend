@@ -172,6 +172,23 @@ const Shop = () => {
     return price?.toFixed(2) || '0.00';
   };
 
+  // Stock status component
+  const StockStatusLabel = ({ inStock }) => {
+    if (inStock !== false) {
+      return (
+        <span className="text-green-600 text-sm font-medium">
+          In Stock
+        </span>
+      );
+    } else {
+      return (
+        <span className="text-red-600 text-sm font-medium">
+          Out of Stock
+        </span>
+      );
+    }
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-6xl">
@@ -214,7 +231,7 @@ const Shop = () => {
   return (
     <div className="container mx-auto px-4 py-8 max-w-8xl ml-0">
       <div className="flex flex-col md:flex-row gap-8 md:items-start">
-        <aside className="w-56 shrink-0 space-y-4">
+        <aside className="w-full md:w-54 lg:w-64 xl:w-72 shrink-0 space-y-4">
           {/* Search Section */}
           <CollapsibleSection title="Search">
             <div className="relative">
@@ -281,12 +298,7 @@ const Shop = () => {
                 onChange={(e) => handlePriceChange('maxPrice', e.target.value)}
               />
             </div>
-            <button 
-              className="bg-black text-white px-3 py-1 rounded text-sm"
-              onClick={applyFilters}
-            >
-              Filter
-            </button>
+            
           </CollapsibleSection>
 
           <CollapsibleSection title="Product type">
@@ -304,8 +316,6 @@ const Shop = () => {
         </aside>
 
         <div className="flex-1">
-
-
           {productsToShow.length === 0 ? (
             <div className="text-center py-12">
               <Search size={48} className="mx-auto text-gray-300 mb-4" />
@@ -341,10 +351,10 @@ const Shop = () => {
               {currentProducts.map((product) => (
                 <div 
                   key={product.id} 
-                  className="flex flex-col bg-gray-50 rounded-md overflow-hidden cursor-pointer hover:shadow-lg transition-shadow duration-200"
+                  className="flex flex-col rounded-md overflow-hidden cursor-pointer transition-shadow duration-200"
                   onClick={() => handleProductClick(product.id)}
                 >
-                  <div className="relative">
+                  <div className="relative h-52">
                     <img 
                       src={product.image} 
                       alt={product.name} 
@@ -354,12 +364,13 @@ const Shop = () => {
                   
                   <div className="p-4 text-center flex-grow">
                     <h3 className="text-sm font-medium text-gray-600 mb-2">{product.name}</h3>
-                    <div className="flex justify-center items-center space-x-2">
-                      <span className="text-red-500 font-semibold">${formatPrice(product.price)}</span>
+                    <div className="flex justify-center items-center space-x-2 mb-2">
+                      <span className="text-gray-500 font-semibold">${formatPrice(product.price)}</span>
                       {product.salePrice && product.salePrice > product.price && (
                         <span className="text-gray-400 text-sm line-through">${formatPrice(product.salePrice)}</span>
                       )}
                     </div>
+                    <StockStatusLabel inStock={product.in_stock} />
                   </div>
                 </div>
               ))}
@@ -389,7 +400,7 @@ const Shop = () => {
                 onClick={() => paginate(index + 1)}
                 className={`w-8 h-8 flex items-center justify-center rounded ${
                   currentPage === index + 1
-                    ? "bg-red-500 text-white"
+                    ? "bg-rose-500 text-white"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >

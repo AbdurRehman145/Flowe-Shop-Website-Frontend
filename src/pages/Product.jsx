@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import AddToCartModal from '../components/AddtoCartModal';
+
 const Product = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ const Product = () => {
   const [selectedThumbnail, setSelectedThumbnail] = useState(0);
   const [activeTab, setActiveTab] = useState('description');
   const [showModal, setShowModal] = useState(false);
+
   // Fetch product details when id changes
   useEffect(() => {
     const fetchProduct = async () => {
@@ -53,7 +55,7 @@ const Product = () => {
   };
 
   const handleAddToCart = () => {
-    if (product) {
+    if (product && product.in_stock !== false) {
       addToCart(product, quantity);
       setShowModal(true);
     }
@@ -64,12 +66,12 @@ const Product = () => {
   };
 
   const handleModalCartClick = () => {
-  navigate('/cart');
-  setShowModal(false);
+    navigate('/cart');
+    setShowModal(false);
   };
 
   const handleModalContinueShopping = () => {
-  setShowModal(false);
+    setShowModal(false);
   };
 
   if (loading) {
@@ -167,7 +169,7 @@ const Product = () => {
               <img 
                 src={productImages[selectedThumbnail]} 
                 alt={product.name} 
-                className="w-full aspect-square object-contain bg-gray-50"
+                className="w-full aspect-square object-contain "
               />
             </div>
           </div>
@@ -176,7 +178,7 @@ const Product = () => {
         <div className="md:w-1/2">
           <h1 className="text-4xl font-serif mb-2">{product.name}</h1>
           <div className="flex items-center space-x-2 mb-6">
-            <p className="text-xl text-red-500 font-semibold">${product.price?.toFixed(2)}</p>
+            <p className="text-xl text-rose-500 font-semibold">${product.price?.toFixed(2)}</p>
             {product.salePrice && product.salePrice > product.price && (
               <p className="text-xl text-gray-400 line-through">${product.salePrice.toFixed(2)}</p>
             )}
@@ -192,34 +194,38 @@ const Product = () => {
             <div className="mr-4">
               <span className="text-gray-700">Quantity</span>
             </div>
-            <div className="flex items-center border border-gray-300">
+            <div className="flex items-center border rounded-md border-gray-300">
               <button 
                 onClick={decreaseQuantity}
-                className="px-3 py-2 text-gray-600 hover:bg-gray-100"
+                disabled={product.in_stock === false}
+                className={`px-3 py-2 ${product.in_stock === false ? 'text-gray-400 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100'}`}
               >
                 <span className="font-medium">−</span>
               </button>
               <span className="px-4 py-2">{quantity}</span>
               <button 
                 onClick={increaseQuantity}
-                className="px-3 py-2 text-gray-600 hover:bg-gray-100"
+                disabled={product.in_stock === false}
+                className={`px-3 py-2 ${product.in_stock === false ? 'text-gray-400 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100'}`}
               >
                 <span className="font-medium">+</span>
               </button>
             </div>
             <button 
               onClick={handleAddToCart}
-              className="ml-4 bg-black text-white px-8 py-3 uppercase tracking-wide text-sm font-medium hover:bg-gray-800"
+              disabled={product.in_stock === false}
+              className={`ml-4 px-8 py-3 rounded-md uppercase tracking-wide text-sm font-medium transition-all duration-250 ${
+                product.in_stock === false 
+                  ? 'bg-gray-400 text-gray-600 cursor-not-allowed' 
+                  : 'bg-pink-500 text-white border hover:bg-white hover:text-black hover:border-pink-400'
+              }`}
             >
-              ADD TO CART
+              {product.in_stock === false ? 'OUT OF STOCK' : 'ADD TO CART'}
             </button>
           </div>
           
           <div className="border-t border-gray-200 pt-6">
-            <div className="mb-2">
-              <span className="font-medium text-gray-700">SKU:</span>{" "}
-              <span className="text-gray-600">{product.sku || product.id}</span>
-            </div>
+            
             <div className="mb-2">
               <span className="font-medium text-gray-700">Categories:</span>{" "}
               <span className="text-gray-600">{product.category || "Various"}</span>
@@ -245,7 +251,7 @@ const Product = () => {
           <div className="flex -mb-px">
             <button 
               className={`py-4 px-8 font-medium ${activeTab === 'description' 
-                ? 'text-white bg-red-500' 
+                ? 'text-white bg-rose-500' 
                 : 'text-gray-500 hover:text-gray-700'}`}
               onClick={() => setActiveTab('description')}
             >
@@ -253,7 +259,7 @@ const Product = () => {
             </button>
             <button 
               className={`py-4 px-8 font-medium ${activeTab === 'additional-information' 
-                ? 'text-white bg-red-500' 
+                ? 'text-white bg-rose-500' 
                 : 'text-gray-500 hover:text-gray-700'}`}
               onClick={() => setActiveTab('additional-information')}
             >
@@ -261,7 +267,7 @@ const Product = () => {
             </button>
             <button 
               className={`py-4 px-8 font-medium ${activeTab === 'reviews' 
-                ? 'text-white bg-red-500' 
+                ? 'text-white bg-rose-500'
                 : 'text-gray-500 hover:text-gray-700'}`}
               onClick={() => setActiveTab('reviews')}
             >
@@ -274,7 +280,7 @@ const Product = () => {
           {activeTab === 'description' && (
             <div>
               <h2 className="text-3xl font-serif text-gray-800 mb-6">
-                {product.name} - Product Details
+                {product.name}
               </h2>
               <p className="text-gray-600">
                 {product.longDescription || product.description || "Aliquam lorem ante, dapibus in, viverra quis, feugiat a, tellus. Phasellus viverra nulla ut metus varius laoreet. Quisque rutrum. Aenean imperdiet. Etiam ultricies nisi vel augue. Curabitur ullamcorper ultricies nisi. Nam eget dui. Etiam rhoncus. Maecenas tempus, tellus eget condimentum rhoncus, sem quam semper libero, sit amet adipiscing sem neque sed ipsum. Nam quam nunc, blandit vel, luctus pulvinar, hendrerit id, lorem. Maecenas nec odio et ante"}
@@ -359,13 +365,13 @@ const Product = () => {
       </div>
 
       <AddToCartModal
-      isOpen={showModal}
-      onClose={() => setShowModal(false)}
-      product={product}
-      quantity={quantity}
-      onCartClick={handleModalCartClick}
-      onContinueShopping={handleModalContinueShopping}
-    />
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        product={product}
+        quantity={quantity}
+        onCartClick={handleModalCartClick}
+        onContinueShopping={handleModalContinueShopping}
+      />
     </div>
   );
 };
